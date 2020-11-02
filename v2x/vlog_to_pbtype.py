@@ -81,6 +81,10 @@ The following attributes are used to annotate cells with fasm metadata:
         list of fasm features and module parameters that they are to be
         assigned with. Can only be specified for a module definition.
 
+    - `(* FASM_LUT *)` or `(* FASM_LUT="feature_name" *)` : When specified
+        on a pb_type that is the parent of a leaf pb_type of class "lut"
+        attaches "fasm_type" and "fasm_lut" metadata tags to it.
+
 The Verilog define "PB_TYPE" is set during generation.
 """
 
@@ -288,12 +292,79 @@ def update_metadata(metadata, new_metadata, concatenate_keys=()):
     return metadata
 
 
+def metadata_for_fasm_lut(yj, parent, children):
+    """
+    Builds metadata for a module annotated as "(* FASM_LUT *)"
+    """
+    metadata = {}
+
+    # Only one child or one child array allowed
+    if len(children) > 1:
+        print("ERROR: A (* FASM_LUT *) pb_type must have either one child or"
+              " an array of children of the same type!")
+        exit(-1)
+
+    # Get data
+    child_prefix, (child_type, children_data) = next(iter(children.items()))
+
+    # The child / children array must be of "lut" class
+    assert yj.has_module(child_type), (child_type,)
+    child_mod = yj.module(child_type)
+
+    child_class = child_mod.attr("CLASS", None)
+    if child_class != "lut":
+        print("ERROR: All children of a pb_type annotated as (* FASM_LUT *) "
+              "must be of class 'lut'")
+        exit(-1)
+
+    # Get the single LUT width
+    lut_width = get_lut_bits(child_mod)
+    assert lut_width is not None
+    init_bits = 1 << lut_width
+
+    # "fasm_type" metadata
+    if len(children_data) == 1:
+        metadata["fasm_type"] = "LUT"
+    else:
+        metadata["fasm_type"] = "SPLIT_LUT"
+
+    # "fasm_lut" metadata
+    feature = parent.attr("FASM_LUT")
+    if not feature or isinstance(feature, int):
+        feature = "INIT"
+
+    # Single LUT
+    if len(children_data) == 1:
+        metadata["fasm_lut"] = "{}[{}:0] = {}".format(
+            feature,
+            init_bits - 1,
+            child_prefix
+        )
+
+    # Split LUT
+    else:
+        meta = []
+        for i in range(len(children_data)):
+            init_lo = i * init_bits
+            init_hi = init_lo + init_bits - 1
+            meta.append("{}[{}:{}] = {}[{}]".format(
+                feature,
+                init_hi,
+                init_lo,
+                child_prefix,
+                i
+            ))
+        metadata["fasm_lut"] = ";".join(meta)
+
+    return metadata
+
+
 def sanity_check_child_metadata(metadata):
     """
     Checks if metadata specified on a child pb_type is sane.
     """
 
-    not_allowed_keys = ("fasm_params", "fasm_lut", )
+    not_allowed_keys = ("fasm_params", "fasm_lut", "fasm_type", )
     for key in metadata.keys():
         if key in not_allowed_keys:
             print("ERROR: metadata '{}' is not allowed for module instances"
@@ -323,9 +394,11 @@ def get_lut_bits(module):
     for port in module.ports:
         port_name = port[0]
         port_dir = port[3]
-        if port_name == "lut_in" and port_dir == "input":
-            port_width = port[1]
-            return int(port_width)
+        port_attr = module.net_attrs(port_name)
+        if port_dir == "input":
+            if port_attr.get("PORT_CLASS", None) == "lut_in":
+                port_width = port[1]
+                return int(port_width)
 
     return None
 
@@ -734,6 +807,7 @@ def make_ports(clocks, mod, pb_type_xml, only_type=None):
 def make_container_pb(
         outfile, yj, mod, mod_pname, pb_type_xml, routing, children
 ):
+
     # Containers have to include children
     # ------------------------------------------------------------
     for child_prefix, (child_type, children_data) in children.items():
@@ -1159,6 +1233,13 @@ def make_pb_type(
         routing = children = []
         if not is_blackbox:
             routing, children = get_children(yj, mod)
+
+        # Format FASM LUT metadata if applicable
+        if children:
+            fasm_lut = mod.attr("FASM_LUT", None)
+            if fasm_lut is not None:
+                meta = metadata_for_fasm_lut(yj, mod, children)
+                metadata = update_metadata(metadata, meta)
 
         if routing or children:
             make_container_pb(
