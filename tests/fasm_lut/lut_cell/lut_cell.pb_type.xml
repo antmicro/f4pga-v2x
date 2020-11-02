@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<pb_type xmlns:xi="http://www.w3.org/2001/XInclude" name="LUT_CELL" num_pb="1">
+  <blif_model>.names</blif_model>
+  <pb_class>lut</pb_class>
+  <input name="I" num_pins="4" port_class="lut_in"/>
+  <output name="O" num_pins="1" port_class="lut_out"/>
+</pb_type>
