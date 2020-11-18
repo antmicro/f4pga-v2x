@@ -1,8 +1,0 @@
-name: yosys-env
-channels:
-  - symbiflow
-dependencies:
-  - symbiflow-yosys
-  - pip:
-    - tox
-    - flake8

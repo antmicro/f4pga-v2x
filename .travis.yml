@@ -6,12 +6,12 @@ python:
   - 3.7
 
 install:
-  - source prepareenv.sh
+  - make env
+  - source env/conda/bin/activate v2x_base
   - source .github/travis/check_license.sh
   - source .github/travis/check_python_script.sh
 
 script:
-  - conda activate yosys-env
   - which tox
   - TOXENV="py${TRAVIS_PYTHON_VERSION//./}" tox
 

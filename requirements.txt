@@ -1,3 +1,6 @@
+flake8
+tox
 lxml
 pyjson
--e git://github.com/SymbiFlow/vtr-xml-utils#egg=vtr-xml-utils
+pytest
+git+https://github.com/SymbiFlow/vtr-xml-utils.git

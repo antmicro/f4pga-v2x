@@ -1,0 +1,10 @@
+name: v2x_base
+channels:
+  - symbiflow
+dependencies:
+  - python==3.8
+  - symbiflow-yosys
+  - pip
+  - pip:
+    - -r file:requirements.txt
+    - -e .
