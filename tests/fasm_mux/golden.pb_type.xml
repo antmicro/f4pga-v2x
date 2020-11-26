@@ -1,0 +1,60 @@
+<?xml version='1.0' encoding='utf-8'?>
+<pb_type xmlns:xi="http://www.w3.org/2001/XInclude" num_pb="1" name="PARENT">
+  <input name="I" num_pins="4"/>
+  <output name="O" num_pins="2"/>
+  <pb_type name="gate_a" num_pb="1">
+    <!--old_name GATE-->
+    <xi:include href="gate/gate.pb_type.xml" xpointer="xpointer(pb_type/child::node()[local-name()!='metadata'])"/>
+    <metadata>
+      <meta name="fasm_prefix">GATE</meta>
+    </metadata>
+  </pb_type>
+  <pb_type name="gate_b" num_pb="1">
+    <!--old_name GATE-->
+    <xi:include href="gate/gate.pb_type.xml" xpointer="xpointer(pb_type/child::node()[local-name()!='metadata'])"/>
+  </pb_type>
+  <interconnect>
+    <direct>
+      <port name="I[0]" type="input"/>
+      <port name="I0" type="output" from="gate_a"/>
+    </direct>
+    <direct>
+      <port name="I[1]" type="input"/>
+      <port name="I1" type="output" from="gate_a"/>
+    </direct>
+    <direct>
+      <port name="I[2]" type="input"/>
+      <port name="I0" type="output" from="gate_b"/>
+    </direct>
+    <direct>
+      <port name="I[3]" type="input"/>
+      <port name="I1" type="output" from="gate_b"/>
+    </direct>
+    <mux name="mux_with_fasm">
+      <port name="I[0]" type="input">
+        <metadata>
+          <meta name="fasm_mux">I0</meta>
+        </metadata>
+      </port>
+      <port name="O" type="input" from="gate_a">
+        <metadata>
+          <meta name="fasm_mux">I1</meta>
+        </metadata>
+      </port>
+      <port name="O[0]" type="output"/>
+      <metadata>
+        <meta name="type">bel</meta>
+        <meta name="subtype">routing</meta>
+      </metadata>
+    </mux>
+    <mux name="mux_without_fasm">
+      <port name="I[2]" type="input"/>
+      <port name="O" type="input" from="gate_b"/>
+      <port name="O[1]" type="output"/>
+      <metadata>
+        <meta name="type">bel</meta>
+        <meta name="subtype">routing</meta>
+      </metadata>
+    </mux>
+  </interconnect>
+</pb_type>

@@ -518,12 +518,18 @@ def make_direct_conn(
 
 def make_mux_conn(
         ic_xml: ET.Element, mux_name: str, mux_inputs: Dict[CellPin, CellPin],
-        mux_outputs: Dict[CellPin, List[CellPin]]
+        mux_outputs: Dict[CellPin, List[CellPin]],
+        annotate_fasm: bool
 ) -> ET.Element:
 
     mux_xml = ET.SubElement(ic_xml, "mux", {"name": mux_name})
     for mux_input, driver in mux_inputs.items():
-        create_port(mux_xml, driver, "input", metadata={'fasm_mux': mux_input})
+        if annotate_fasm:
+            metadata = {'fasm_mux': mux_input}
+        else:
+            metadata = None
+        create_port(mux_xml, driver, "input", metadata=metadata)
+
     assert len(mux_outputs) == 1, mux_outputs
     for mux_pin, sinks in mux_outputs.items():
         assert len(sinks) == 1, sinks
@@ -965,6 +971,11 @@ def make_container_pb(
 
     # Generate the mux interconnects
     for mux_cell in routing_cells:
+
+        # Check whether we should annotate the mux with FASM
+        cell_attrs = mod.cell_attrs(mux_cell)
+        annotate_fasm = int(cell_attrs.get("FASM", "0")) != 0
+
         mux_outputs = defaultdict(list)
         for (driver_cell, driver_pin), sinks in interconn.items():
             if driver_cell != mux_cell:
@@ -1006,7 +1017,7 @@ Pin {}.{} is trying to drive mux pin {}.{} (already driving by {}.{})\
                 )
                 mux_inputs[mux_pin] = (driver_cell, driver_pin)
 
-        make_mux_conn(ic_xml, mux_cell, mux_inputs, mux_outputs)
+        make_mux_conn(ic_xml, mux_cell, mux_inputs, mux_outputs, annotate_fasm)
 
 
 def make_leaf_pb(outfile, yj, mod, mod_pname, pb_type_xml):

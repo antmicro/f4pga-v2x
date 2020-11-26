@@ -15,8 +15,10 @@ module USE_MUX (a, b, c, o1, o2);
 	LOGICBOX lboxc (.I(c), .O(logic_c));
 
 	parameter FASM_MUX1 = "I0";
+    (* FASM *)
 	RMUX #(.MODE(FASM_MUX1)) mux1 (.I0(logic_a), .I1(logic_b), .O(o1));
 
 	parameter FASM_MUX2 = "I0";
+    (* FASM *)
 	RMUX #(.MODE(FASM_MUX2)) mux2 (.I0(logic_a), .I1(logic_c), .O(o2));
 endmodule

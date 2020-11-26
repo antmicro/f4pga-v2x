@@ -21,6 +21,7 @@ module PAIR (
 	DFF ff (.CLK(CLK), .D(lut_out), .Q(ff_out));
 
 	parameter FF_BYPASS = "F";
+    (* FASM *)
 	OMUX #(.MODE(FF_BYPASS)) mux(.L(lut_out), .F(ff_out), .O(O));
 
 endmodule
