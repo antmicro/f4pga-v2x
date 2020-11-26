@@ -1,0 +1,75 @@
+<?xml version='1.0' encoding='utf-8'?>
+<pb_type xmlns:xi="http://www.w3.org/2001/XInclude" num_pb="1" name="CLB">
+  <clock name="CLK" num_pins="1"/>
+  <input name="IA" num_pins="4"/>
+  <input name="IB" num_pins="4"/>
+  <output name="O" num_pins="1"/>
+  <pb_type name="ALUT" num_pb="1">
+    <!--old_name LUT4-->
+    <xi:include href="lut/lut4.pb_type.xml" xpointer="xpointer(pb_type/child::node()[local-name()!='metadata'])"/>
+  </pb_type>
+  <pb_type name="BLUT" num_pb="1">
+    <!--old_name LUT4-->
+    <xi:include href="lut/lut4.pb_type.xml" xpointer="xpointer(pb_type/child::node()[local-name()!='metadata'])"/>
+  </pb_type>
+  <xi:include href="ff/ff.pb_type.xml"/>
+  <interconnect>
+    <direct>
+      <port name="IA[0]" type="input"/>
+      <port name="I[0]" type="output" from="ALUT"/>
+    </direct>
+    <direct>
+      <port name="IA[1]" type="input"/>
+      <port name="I[1]" type="output" from="ALUT"/>
+    </direct>
+    <direct>
+      <port name="IA[2]" type="input"/>
+      <port name="I[2]" type="output" from="ALUT"/>
+    </direct>
+    <direct>
+      <port name="IA[3]" type="input"/>
+      <port name="I[3]" type="output" from="ALUT"/>
+    </direct>
+    <direct>
+      <port name="IB[0]" type="input"/>
+      <port name="I[0]" type="output" from="BLUT"/>
+    </direct>
+    <direct>
+      <port name="IB[1]" type="input"/>
+      <port name="I[1]" type="output" from="BLUT"/>
+    </direct>
+    <direct>
+      <port name="IB[2]" type="input"/>
+      <port name="I[2]" type="output" from="BLUT"/>
+    </direct>
+    <direct>
+      <port name="IB[3]" type="input"/>
+      <port name="I[3]" type="output" from="BLUT"/>
+    </direct>
+    <direct>
+      <port name="CLK" type="input"/>
+      <port name="CLK" type="output" from="FF"/>
+    </direct>
+    <direct>
+      <port name="Q" type="input" from="FF"/>
+      <port name="O" type="output"/>
+    </direct>
+    <mux name="LUT_MUX">
+      <port name="O" type="input" from="ALUT"/>
+      <port name="O" type="input" from="BLUT"/>
+      <port name="D" type="output" from="FF"/>
+      <pack_pattern name="ALUT_TO_FF" type="pack">
+        <port name="O" type="input" from="ALUT"/>
+        <port name="D" type="output" from="FF"/>
+      </pack_pattern>
+      <pack_pattern name="BLUT_TO_FF" type="pack">
+        <port name="O" type="input" from="BLUT"/>
+        <port name="D" type="output" from="FF"/>
+      </pack_pattern>
+      <metadata>
+        <meta name="type">bel</meta>
+        <meta name="subtype">routing</meta>
+      </metadata>
+    </mux>
+  </interconnect>
+</pb_type>
