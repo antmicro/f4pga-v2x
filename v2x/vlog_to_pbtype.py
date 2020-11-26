@@ -330,8 +330,12 @@ def metadata_for_fasm_lut(yj, parent, children):
 
     # "fasm_lut" metadata
     feature = parent.attr("FASM_LUT")
-    if not feature or isinstance(feature, int):
+    try:
+        # Use "INIT" FASM feature if the attribute is set to an integer.
+        feature = int(feature)
         feature = "INIT"
+    except ValueError:
+        pass
 
     # Single LUT
     if len(children_data) == 1:
