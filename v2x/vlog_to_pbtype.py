@@ -516,19 +516,17 @@ def make_ports(clocks, mod, pb_type_xml, only_type=None):
         if name in clocks:
             if only_type and only_type != "clocks":
                 continue
-            port_xml = ET.SubElement(pb_type_xml, "clock", ioattrs)
+            ET.SubElement(pb_type_xml, "clock", ioattrs)
         elif iodir == "input":
             if only_type and only_type != "inputs":
                 continue
-            port_xml = ET.SubElement(pb_type_xml, "input", ioattrs)
+            ET.SubElement(pb_type_xml, "input", ioattrs)
         elif iodir == "output":
             if only_type and only_type != "outputs":
                 continue
-            port_xml = ET.SubElement(pb_type_xml, "output", ioattrs)
+            ET.SubElement(pb_type_xml, "output", ioattrs)
         else:
             assert False, "bidirectional ports not supported in VPR pb_types"
-
-        port_attrs = mod.port_attrs(name)
 
 
 def mark_all_paths(interconnects):
@@ -589,14 +587,15 @@ def mark_all_paths(interconnects):
             pack_pattern_list = marked_cells.get((sink_cell, sink_pin), None)
 
             if pack_pattern_list is None:
-                print(sink_cell, sink_pin)
                 continue
 
             if drv_cell is None:
                 continue
 
             attrs["pack"] = ";".join(pack_pattern_list)
-            interconnects[(drv_cell, drv_pin)][idx] = ((sink_cell, sink_pin), attrs)
+            driver = (drv_cell, drv_pin)
+            sink = (sink_cell, sink_pin)
+            interconnects[driver][idx] = (sink, attrs)
 
 
 def make_container_pb(
